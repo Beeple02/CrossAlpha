@@ -2,11 +2,15 @@
 
 from __future__ import annotations
 
+from io import StringIO
+
 import numpy as np
 import pandas as pd
+import requests
 
 from crossalpha.data.adapters.base import UniverseAdapter
 from crossalpha.utils.dates import add_trading_days, trading_days_between
+from crossalpha.utils.http import web_request_headers
 
 
 WIKIPEDIA_URL = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
@@ -30,7 +34,18 @@ class WikipediaSp500Adapter(UniverseAdapter):
 
     @staticmethod
     def fetch_tables() -> tuple[pd.DataFrame, pd.DataFrame]:
-        tables = pd.read_html(WIKIPEDIA_URL)
+        response = requests.get(
+            WIKIPEDIA_URL,
+            headers=web_request_headers(host="en.wikipedia.org"),
+            timeout=30,
+        )
+        try:
+            response.raise_for_status()
+        except requests.HTTPError as exc:  # pragma: no cover - network adapter
+            raise RuntimeError(
+                "Wikipedia membership fetch failed. Set CROSSALPHA_USER_AGENT and retry."
+            ) from exc
+        tables = pd.read_html(StringIO(response.text))
         current = _flatten_columns(tables[0]).rename(columns={"Symbol": "ticker"})
         changes = next(table for table in tables[1:] if "Date" in _flatten_columns(table).columns)
         changes = _flatten_columns(changes)

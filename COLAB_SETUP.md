@@ -58,7 +58,16 @@ If you uploaded a zip or folder manually, just `cd` into the repo root.
 !pip install -r requirements-colab.txt
 ```
 
-### 4. Use the Colab config
+### 4. Set a descriptive user-agent
+
+This helps avoid `403` responses from Wikipedia and keeps SEC requests compliant.
+
+```python
+import os
+os.environ["CROSSALPHA_USER_AGENT"] = "CrossAlpha Research your_email@example.com"
+```
+
+### 5. Use the Colab config
 
 Use [configs/colab.toml](C:\Users\lucia\Documents\Codex\2026-05-03-files-mentioned-by-the-user-crossalpha\configs\colab.toml). It writes artifacts to:
 

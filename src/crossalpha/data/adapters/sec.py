@@ -10,15 +10,10 @@ import urllib.request
 import pandas as pd
 
 from crossalpha.data.adapters.base import FundamentalsAdapter
+from crossalpha.utils.http import sec_request_headers
 
 
 LOGGER = logging.getLogger(__name__)
-
-SEC_HEADERS = {
-    "User-Agent": "CrossAlpha/0.1 research implementation",
-    "Accept-Encoding": "gzip, deflate",
-    "Host": "data.sec.gov",
-}
 
 FORM_ALLOWLIST = {"10-Q", "10-K", "10-Q/A", "10-K/A", "8-K"}
 METRIC_MAP: dict[str, list[tuple[str, list[str], set[str]]]] = {
@@ -36,7 +31,7 @@ METRIC_MAP: dict[str, list[tuple[str, list[str], set[str]]]] = {
 
 
 def _read_json(url: str) -> dict:
-    request = urllib.request.Request(url=url, headers=SEC_HEADERS)
+    request = urllib.request.Request(url=url, headers=sec_request_headers())
     with urllib.request.urlopen(request, timeout=30) as response:  # nosec: B310
         return json.loads(response.read().decode("utf-8"))
 

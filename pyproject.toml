@@ -19,6 +19,7 @@ dependencies = [
   "lightgbm>=4.5",
   "yfinance>=0.2.54",
   "lxml>=5.2",
+  "requests>=2.31",
   "tomli>=2.0; python_version < '3.11'",
 ]
 

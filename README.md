@@ -50,6 +50,8 @@ pip install -e .[dev]
 
 For Google Colab, use [requirements-colab.txt](C:\Users\lucia\Documents\Codex\2026-05-03-files-mentioned-by-the-user-crossalpha\requirements-colab.txt) and see [COLAB_SETUP.md](C:\Users\lucia\Documents\Codex\2026-05-03-files-mentioned-by-the-user-crossalpha\COLAB_SETUP.md).
 
+Before running live ingestion against Wikipedia and the SEC, set `CROSSALPHA_USER_AGENT` to something descriptive with contact info, for example `CrossAlpha Research your_email@example.com`.
+
 ## End-to-End Commands
 
 The main CLI is `crossalpha`.
@@ -120,6 +122,7 @@ not_enough_data_reason
 - `pyarrow`, `scikit-learn`, `lightgbm`, `yfinance`, and `lxml` must be installed.
 - On Python 3.10, `tomli` is also required.
 - SEC access works best with a descriptive `User-Agent` environment variable for request headers.
+- Wikipedia access is also more reliable when `CROSSALPHA_USER_AGENT` is set explicitly.
 
 ## Exact Next Step
 
