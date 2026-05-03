@@ -1,0 +1,102 @@
+[paths]
+raw_dir = "/content/drive/MyDrive/CrossAlphaArtifacts/data/raw"
+processed_dir = "/content/drive/MyDrive/CrossAlphaArtifacts/data/processed"
+models_dir = "/content/drive/MyDrive/CrossAlphaArtifacts/data/models"
+logs_dir = "/content/drive/MyDrive/CrossAlphaArtifacts/data/logs"
+reports_dir = "/content/drive/MyDrive/CrossAlphaArtifacts/reports/output"
+
+[data]
+start_date = "2010-01-01"
+end_date = "2026-04-30"
+benchmark_symbol = "^GSPC"
+vix_symbol = "^VIX"
+risk_free_series = "DGS3MO"
+refresh = false
+
+[quality]
+max_forward_fill_days = 5
+min_price_history_days = 252
+stale_price_days = 2
+ipo_buffer_days = 63
+stale_fundamental_days = 183
+max_missing_feature_ratio = 0.20
+
+[universe]
+source = "wikipedia_sp500"
+membership_min_reliability = 0.70
+
+[features]
+normalization = "zscore"
+random_noise_feature_count = 3
+
+[recommendation]
+buy_fraction = 0.10
+min_buy_count = 1
+caution_max_buys = 5
+closed_vix = 35.0
+caution_vix = 25.0
+
+[validation]
+embargo_days = 42
+holdout_start = "2025-01-01"
+holdout_end = "2026-04-30"
+
+[[validation.splits]]
+train_end = "2018-12-31"
+val_start = "2019-03-16"
+val_end = "2019-12-31"
+
+[[validation.splits]]
+train_end = "2019-12-31"
+val_start = "2020-03-16"
+val_end = "2020-12-31"
+
+[[validation.splits]]
+train_end = "2020-12-31"
+val_start = "2021-03-16"
+val_end = "2021-12-31"
+
+[[validation.splits]]
+train_end = "2021-12-31"
+val_start = "2022-03-16"
+val_end = "2022-12-31"
+
+[[validation.splits]]
+train_end = "2022-12-31"
+val_start = "2023-03-16"
+val_end = "2023-12-31"
+
+[[validation.splits]]
+train_end = "2023-12-31"
+val_start = "2024-03-16"
+val_end = "2024-12-31"
+
+[backtest]
+transaction_cost_bps = 5.0
+slippage_bps = 5.0
+initial_capital = 1000000.0
+rebalance_frequency = "daily"
+
+[model.baseline]
+positive_class_quantile = 0.80
+C = 1.0
+max_iter = 500
+
+[model.ranker]
+backend = "lightgbm"
+n_estimators = 500
+learning_rate = 0.05
+num_leaves = 31
+feature_fraction = 0.70
+bagging_fraction = 0.70
+bagging_freq = 5
+min_child_samples = 50
+max_depth = 6
+early_stopping_rounds = 50
+
+[horizons]
+"1d" = 1
+"1w" = 5
+"2w" = 10
+"1m" = 21
+"2m" = 42

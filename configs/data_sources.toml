@@ -1,0 +1,31 @@
+[universe]
+adapter = "wikipedia_sp500"
+notes = "Current constituents plus published change log from the S&P 500 Wikipedia page."
+
+[prices]
+adapter = "yahoo_finance"
+notes = "Daily OHLCV and adjusted close via yfinance."
+
+[benchmark]
+adapter = "yahoo_finance"
+symbol = "^GSPC"
+
+[regime_proxy]
+adapter = "yahoo_finance"
+symbol = "^VIX"
+
+[risk_free]
+adapter = "fred"
+series_id = "DGS3MO"
+
+[earnings]
+adapter = "yahoo_finance"
+notes = "Historical earnings dates and surprise fields when available from Yahoo Finance."
+
+[fundamentals]
+adapter = "sec_companyfacts"
+notes = "Point-in-time SEC company facts keyed by filing date."
+
+[metadata]
+primary_adapter = "yahoo_finance"
+fallback_adapter = "wikipedia_sp500"

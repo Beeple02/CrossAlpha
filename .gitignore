@@ -1,0 +1,11 @@
+.pytest_cache/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+data/raw/
+data/processed/
+data/models/
+data/logs/
+reports/output/

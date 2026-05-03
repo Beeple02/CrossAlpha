@@ -48,6 +48,8 @@ python -m venv .venv
 pip install -e .[dev]
 ```
 
+For Google Colab, use [requirements-colab.txt](C:\Users\lucia\Documents\Codex\2026-05-03-files-mentioned-by-the-user-crossalpha\requirements-colab.txt) and see [COLAB_SETUP.md](C:\Users\lucia\Documents\Codex\2026-05-03-files-mentioned-by-the-user-crossalpha\COLAB_SETUP.md).
+
 ## End-to-End Commands
 
 The main CLI is `crossalpha`.
@@ -69,6 +71,7 @@ crossalpha run-all --config configs/base.toml
 ```
 
 `configs/data_sources.toml` documents the default adapter choices and is the intended place to swap vendors later.
+`configs/colab.toml` is the ready-to-use Colab configuration that writes artifacts to Google Drive.
 
 ## Main Artifacts
 
@@ -115,6 +118,7 @@ not_enough_data_reason
 
 - Internet access is required to run the free-source ingestion steps.
 - `pyarrow`, `scikit-learn`, `lightgbm`, `yfinance`, and `lxml` must be installed.
+- On Python 3.10, `tomli` is also required.
 - SEC access works best with a descriptive `User-Agent` environment variable for request headers.
 
 ## Exact Next Step
