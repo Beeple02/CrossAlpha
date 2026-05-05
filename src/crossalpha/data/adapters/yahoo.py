@@ -137,4 +137,7 @@ class YahooFinanceAdapter(PriceAdapter, MetadataAdapter, EarningsAdapter):
         })
         df["source"] = "yfinance"
         keep = ["date", "ticker", "open", "high", "low", "close", "adj_close", "volume", "source"]
-        return df[keep]
+        df = df[keep]
+        price_columns = ["open", "high", "low", "close", "adj_close"]
+        df = df[df[price_columns].notna().any(axis=1)].copy()
+        return df

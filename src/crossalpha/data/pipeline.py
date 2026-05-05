@@ -43,6 +43,21 @@ def run_data_ingestion(cfg: ProjectConfig) -> None:
         symbols=tickers,
         cfg=cfg,
     )
+    available_tickers = _tickers_with_price_history(price_history)
+    unavailable_count = len(set(tickers) - set(available_tickers))
+    LOGGER.info(
+        "Usable Yahoo price history found for %s/%s universe tickers.",
+        len(available_tickers),
+        len(tickers),
+    )
+    if unavailable_count > 0:
+        LOGGER.warning(
+            "Skipping metadata, earnings, and fundamentals fetch for %s tickers without usable price history.",
+            unavailable_count,
+        )
+    if not available_tickers:
+        raise RuntimeError("No usable Yahoo price history was downloaded for the selected universe.")
+
     benchmark = _incremental_prices(
         yahoo=yahoo,
         catalog=catalog,
@@ -57,9 +72,9 @@ def run_data_ingestion(cfg: ProjectConfig) -> None:
         symbols=[cfg.data.vix_symbol],
         cfg=cfg,
     )
-    metadata = yahoo.fetch_metadata(tickers)
-    earnings = yahoo.fetch_earnings(tickers)
-    fundamentals = sec.fetch_fundamentals(tickers)
+    metadata = yahoo.fetch_metadata(available_tickers)
+    earnings = yahoo.fetch_earnings(available_tickers)
+    fundamentals = sec.fetch_fundamentals(available_tickers)
     risk_free = fred.fetch_series(cfg.data.risk_free_series)
 
     metadata = metadata.merge(
@@ -115,3 +130,13 @@ def _incremental_prices(
 
     LOGGER.info("Downloading full %s history.", artifact_name)
     return yahoo.fetch_prices(symbols, cfg.data.start_date, cfg.data.end_date)
+
+
+def _tickers_with_price_history(price_history: pd.DataFrame) -> list[str]:
+    if price_history.empty:
+        return []
+    price_columns = ["open", "high", "low", "close", "adj_close"]
+    usable = price_history[price_history[price_columns].notna().any(axis=1)].copy()
+    if usable.empty:
+        return []
+    return sorted(usable["ticker"].dropna().astype(str).unique().tolist())
