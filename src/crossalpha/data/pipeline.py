@@ -72,9 +72,15 @@ def run_data_ingestion(cfg: ProjectConfig) -> None:
         symbols=[cfg.data.vix_symbol],
         cfg=cfg,
     )
-    metadata = yahoo.fetch_metadata(available_tickers)
-    earnings = yahoo.fetch_earnings(available_tickers)
-    fundamentals = sec.fetch_fundamentals(available_tickers)
+    recent_tickers = _tickers_with_recent_price_history(price_history, cfg.data.end_date)
+    LOGGER.info(
+        "Recent vendor-eligible tickers near %s: %s.",
+        cfg.data.end_date,
+        len(recent_tickers),
+    )
+    metadata = yahoo.fetch_metadata(recent_tickers)
+    earnings = yahoo.fetch_earnings(recent_tickers)
+    fundamentals = sec.fetch_fundamentals(recent_tickers)
     risk_free = fred.fetch_series(cfg.data.risk_free_series)
 
     metadata = metadata.merge(
@@ -140,3 +146,20 @@ def _tickers_with_price_history(price_history: pd.DataFrame) -> list[str]:
     if usable.empty:
         return []
     return sorted(usable["ticker"].dropna().astype(str).unique().tolist())
+
+
+def _tickers_with_recent_price_history(
+    price_history: pd.DataFrame,
+    end_date: str,
+    max_staleness_days: int = 120,
+) -> list[str]:
+    available_tickers = _tickers_with_price_history(price_history)
+    if not available_tickers:
+        return []
+
+    frame = price_history.copy()
+    frame["date"] = pd.to_datetime(frame["date"])
+    last_seen = frame.groupby("ticker")["date"].max()
+    cutoff = pd.Timestamp(end_date) - pd.Timedelta(days=max_staleness_days)
+    recent = last_seen[last_seen >= cutoff]
+    return sorted(recent.index.astype(str).tolist())
