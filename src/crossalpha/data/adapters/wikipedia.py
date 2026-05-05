@@ -47,8 +47,11 @@ class WikipediaSp500Adapter(UniverseAdapter):
             ) from exc
         tables = pd.read_html(StringIO(response.text))
         current = _flatten_columns(tables[0]).rename(columns={"Symbol": "ticker"})
-        changes = next(table for table in tables[1:] if "Date" in _flatten_columns(table).columns)
-        changes = _flatten_columns(changes)
+        changes = next(
+            _flatten_columns(table)
+            for table in tables[1:]
+            if _is_changes_table(_flatten_columns(table))
+        )
         return current, changes
 
     def fetch_sector_metadata(self) -> pd.DataFrame:
@@ -106,10 +109,10 @@ class WikipediaSp500Adapter(UniverseAdapter):
 
     @staticmethod
     def _normalize_changes(changes: pd.DataFrame) -> pd.DataFrame:
-        date_col = "Date"
-        added_col = next((column for column in changes.columns if "Added" in column and "Ticker" in column), None)
-        removed_col = next((column for column in changes.columns if "Removed" in column and "Ticker" in column), None)
-        if added_col is None or removed_col is None:
+        date_col = _match_first_column(changes.columns, include=("date",), exclude=("added", "removed"))
+        added_col = _match_first_column(changes.columns, include=("added", "ticker"))
+        removed_col = _match_first_column(changes.columns, include=("removed", "ticker"))
+        if date_col is None or added_col is None or removed_col is None:
             return pd.DataFrame(columns=["date", "added_ticker", "removed_ticker"])
 
         normalized = changes[[date_col, added_col, removed_col]].rename(columns={
@@ -137,3 +140,23 @@ class WikipediaSp500Adapter(UniverseAdapter):
             "membership_reliability": reliability,
             "source": "wikipedia_sp500",
         })
+
+
+def _is_changes_table(df: pd.DataFrame) -> bool:
+    return (
+        _match_first_column(df.columns, include=("date",), exclude=("added", "removed")) is not None
+        and _match_first_column(df.columns, include=("added", "ticker")) is not None
+        and _match_first_column(df.columns, include=("removed", "ticker")) is not None
+    )
+
+
+def _match_first_column(
+    columns: pd.Index | list[str],
+    include: tuple[str, ...],
+    exclude: tuple[str, ...] = (),
+) -> str | None:
+    for column in columns:
+        normalized = str(column).strip().lower()
+        if all(token in normalized for token in include) and not any(token in normalized for token in exclude):
+            return str(column)
+    return None
