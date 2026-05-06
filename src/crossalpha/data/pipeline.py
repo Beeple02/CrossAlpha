@@ -73,14 +73,19 @@ def run_data_ingestion(cfg: ProjectConfig) -> None:
         cfg=cfg,
     )
     recent_tickers = _tickers_with_recent_price_history(price_history, cfg.data.end_date)
+    vendor_tickers = _vendor_enrichment_tickers(recent_tickers, wiki_metadata)
     LOGGER.info(
         "Recent vendor-eligible tickers near %s: %s.",
         cfg.data.end_date,
         len(recent_tickers),
     )
-    metadata = yahoo.fetch_metadata(recent_tickers)
-    earnings = yahoo.fetch_earnings(recent_tickers)
-    fundamentals = sec.fetch_fundamentals(recent_tickers)
+    LOGGER.info(
+        "Current-constituent vendor enrichment tickers: %s.",
+        len(vendor_tickers),
+    )
+    metadata = yahoo.fetch_metadata(vendor_tickers)
+    earnings = yahoo.fetch_earnings(vendor_tickers)
+    fundamentals = sec.fetch_fundamentals(vendor_tickers)
     risk_free = fred.fetch_series(cfg.data.risk_free_series)
 
     metadata = metadata.merge(
@@ -163,3 +168,13 @@ def _tickers_with_recent_price_history(
     cutoff = pd.Timestamp(end_date) - pd.Timedelta(days=max_staleness_days)
     recent = last_seen[last_seen >= cutoff]
     return sorted(recent.index.astype(str).tolist())
+
+
+def _vendor_enrichment_tickers(
+    recent_tickers: list[str],
+    wiki_metadata: pd.DataFrame,
+) -> list[str]:
+    if not recent_tickers or wiki_metadata.empty or "ticker" not in wiki_metadata.columns:
+        return []
+    current_constituents = set(wiki_metadata["ticker"].dropna().astype(str).tolist())
+    return sorted(ticker for ticker in recent_tickers if ticker in current_constituents)

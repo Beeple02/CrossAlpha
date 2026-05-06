@@ -27,10 +27,12 @@ def web_request_headers(host: str | None = None) -> dict[str, str]:
     return headers
 
 
-def sec_request_headers() -> dict[str, str]:
-    return {
+def sec_request_headers(host: str | None = None) -> dict[str, str]:
+    headers = {
         "User-Agent": default_user_agent(),
         "Accept": "application/json",
         "Accept-Encoding": "gzip, deflate",
-        "Host": "data.sec.gov",
     }
+    if host:
+        headers["Host"] = host
+    return headers

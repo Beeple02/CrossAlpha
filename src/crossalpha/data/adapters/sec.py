@@ -6,6 +6,7 @@ import json
 import logging
 import time
 import urllib.request
+from urllib.parse import urlparse
 
 import pandas as pd
 
@@ -31,7 +32,8 @@ METRIC_MAP: dict[str, list[tuple[str, list[str], set[str]]]] = {
 
 
 def _read_json(url: str) -> dict:
-    request = urllib.request.Request(url=url, headers=sec_request_headers())
+    host = urlparse(url).netloc
+    request = urllib.request.Request(url=url, headers=sec_request_headers(host=host))
     with urllib.request.urlopen(request, timeout=30) as response:  # nosec: B310
         return json.loads(response.read().decode("utf-8"))
 
@@ -41,7 +43,11 @@ class SecCompanyFactsAdapter(FundamentalsAdapter):
         self.pause_seconds = pause_seconds
 
     def fetch_fundamentals(self, tickers: list[str]) -> pd.DataFrame:
-        ticker_map = self._fetch_ticker_cik_map()
+        try:
+            ticker_map = self._fetch_ticker_cik_map()
+        except Exception as exc:  # pragma: no cover - network adapter
+            LOGGER.warning("SEC ticker-to-CIK map fetch failed: %s", exc)
+            return pd.DataFrame(columns=["ticker", "filed_at", "period_end", "form", "source"])
         frames: list[pd.DataFrame] = []
         for ticker in tickers:
             cik = ticker_map.get(ticker.upper())
